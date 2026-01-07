@@ -3,22 +3,32 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const uid = request.cookies.get("uid")?.value;
-  const role = request.cookies.get("role")?.value;
+  /* ================= PUBLIC ROUTES ================= */
 
-  // Allow auth routes
+  // ✅ Allow anyone to track a package (NO LOGIN)
+  if (pathname === "/track") {
+    return NextResponse.next();
+  }
+
+  // ✅ Allow auth pages
   if (pathname.startsWith("/auth")) {
     return NextResponse.next();
   }
 
-  // Not logged in
+  /* ================= AUTH CHECK ================= */
+
+  const uid = request.cookies.get("uid")?.value;
+  const role = request.cookies.get("role")?.value;
+
+  // ❌ Not logged in
   if (!uid || !role) {
     return NextResponse.redirect(
       new URL("/auth/login", request.url)
     );
   }
 
-  // Role guards
+  /* ================= ROLE GUARDS ================= */
+
   if (pathname.startsWith("/dashboard/admin") && role !== "admin") {
     return NextResponse.redirect(
       new URL("/unauthorized", request.url)
@@ -43,6 +53,12 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+/* ================= MATCHER ================= */
+
 export const config = {
-  matcher: ["/dashboard/:path*", "/orders/:path*"],
+  matcher: [
+    "/track",
+    "/auth/:path*",
+    "/dashboard/:path*",
+  ],
 };
