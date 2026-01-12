@@ -2,7 +2,7 @@ export function trackingEmailTemplate(
   name: string,
   trackingCode: string
 ) {
-  const trackingUrl = `https://yourdomain.com/track?code=${trackingCode}`;
+  const trackingUrl = `https://www.dhl-delivery.org/track?code=${trackingCode}`;
 
   return `
   <div style="margin:0;padding:0;background-color:#f5f5f5;">
@@ -17,14 +17,14 @@ export function trackingEmailTemplate(
               <td style="background:#d40511;padding:20px;text-align:center;">
                 <!-- LOGO -->
                 <img
-                  src="https://yourdomain.com/logo.png"
-                  alt="Global Delivery"
+                  src="https://www.dhl-delivery.org/logo.png"
+                  alt="DHL Delivery"
                   width="120"
                   style="display:block;margin:0 auto 10px;"
                 />
                 <h1 style="margin:0;font-family:Arial,Helvetica,sans-serif;
                   font-size:18px;color:#ffffff;font-weight:bold;">
-                  GLOBAL DELIVERY
+                  DHL DELIVERY
                 </h1>
               </td>
             </tr>
@@ -98,7 +98,7 @@ export function trackingEmailTemplate(
               <td style="background:#f3f4f6;padding:15px;text-align:center;
                 font-family:Arial,Helvetica,sans-serif;">
                 <p style="margin:0;font-size:12px;color:#666;">
-                  © ${new Date().getFullYear()} Global Delivery. All rights reserved.
+                  © ${new Date().getFullYear()} DHL Delivery. All rights reserved.
                 </p>
                 <p style="margin:5px 0 0;font-size:12px;color:#666;">
                   This is an automated email. Please do not reply.
