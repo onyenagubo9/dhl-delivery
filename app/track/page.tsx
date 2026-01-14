@@ -6,6 +6,7 @@ import {
   query,
   where,
   getDocs,
+  orderBy,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import TrackingMap from "@/components/tracking/TrackingMap";
@@ -18,11 +19,14 @@ import {
   Phone,
   Mail,
   Truck,
+  CreditCard,
+  Calendar,
 } from "lucide-react";
 
 export default function TrackPage() {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [order, setOrder] = useState<any>(null);
+  const [timeline, setTimeline] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -30,6 +34,7 @@ export default function TrackPage() {
     e.preventDefault();
     setError("");
     setOrder(null);
+    setTimeline([]);
 
     if (!trackingNumber.trim()) {
       setError("Please enter a tracking number");
@@ -52,7 +57,23 @@ export default function TrackPage() {
       }
 
       const doc = snap.docs[0];
-      setOrder({ id: doc.id, ...doc.data() });
+      const orderData = { id: doc.id, ...doc.data() };
+      setOrder(orderData);
+
+      // fetch timeline
+      const timelineSnap = await getDocs(
+        query(
+          collection(db, "orders", doc.id, "timeline"),
+          orderBy("timestamp", "asc")
+        )
+      );
+
+      setTimeline(
+        timelineSnap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as any),
+        }))
+      );
     } catch {
       setError("Failed to fetch tracking details");
     } finally {
@@ -68,6 +89,8 @@ export default function TrackPage() {
         return "bg-yellow-100 text-yellow-700";
       case "in_transit":
         return "bg-blue-100 text-blue-700";
+      case "out_for_delivery":
+        return "bg-purple-100 text-purple-700";
       case "delivered":
         return "bg-green-100 text-green-700";
       default:
@@ -81,29 +104,23 @@ export default function TrackPage() {
 
         {/* HEADER */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-extrabold tracking-tight">
-            📦 Track Your Package
-          </h1>
+          <h1 className="text-3xl font-extrabold">📦 Track Your Package</h1>
           <p className="text-slate-300">
             Enter your tracking number to see live delivery updates
           </p>
         </div>
 
-        {/* SEARCH BAR */}
+        {/* SEARCH */}
         <form
           onSubmit={handleTrack}
-          className="
-            bg-white rounded-2xl shadow-xl p-4
-            flex flex-col sm:flex-row gap-3
-            transition hover:scale-[1.01]
-          "
+          className="bg-white rounded-2xl shadow-xl p-4 flex flex-col sm:flex-row gap-3"
         >
           <div className="flex-1 flex items-center gap-2">
             <Search className="text-gray-400 w-5 h-5" />
             <input
               value={trackingNumber}
               onChange={(e) => setTrackingNumber(e.target.value)}
-              placeholder="e.g. GD-9A7FQX2L"
+              placeholder="e.g. TRK-1700000000"
               className="w-full outline-none text-gray-900"
             />
           </div>
@@ -111,11 +128,7 @@ export default function TrackPage() {
           <button
             type="submit"
             disabled={loading}
-            className="
-              bg-yellow-400 hover:bg-yellow-500
-              text-black font-bold px-6 py-3 rounded-xl
-              transition active:scale-95
-            "
+            className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-3 rounded-xl"
           >
             {loading ? "Tracking…" : "Track"}
           </button>
@@ -129,21 +142,14 @@ export default function TrackPage() {
 
         {/* RESULTS */}
         {order && (
-          <div className="space-y-8 animate-fade-in">
+          <div className="space-y-8">
 
-            {/* SUMMARY CARD */}
+            {/* SUMMARY */}
             <div className="bg-white text-gray-900 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Package className="w-5 h-5 text-yellow-500" />
-                  <h2 className="font-bold text-lg">
-                    Shipment Summary
-                  </h2>
-                </div>
-
+              <div>
                 <p className="text-sm text-gray-500">
-                  Tracking No:
-                  <span className="font-mono ml-2">
+                  Tracking:
+                  <span className="ml-2 font-mono">
                     {order.trackingNumber}
                   </span>
                 </p>
@@ -151,19 +157,17 @@ export default function TrackPage() {
                 <p className="text-sm">
                   Route:{" "}
                   <strong>
-                    {order.pickup?.city},{" "}
-                    {order.pickup?.country}
+                    {order.pickup?.city}, {order.pickup?.country}
                   </strong>{" "}
                   →{" "}
                   <strong>
-                    {order.recipient?.city},{" "}
-                    {order.recipient?.country}
+                    {order.recipient?.city}, {order.recipient?.country}
                   </strong>
                 </p>
               </div>
 
               <span
-                className={`self-start px-4 py-2 rounded-full text-sm font-semibold capitalize ${statusColor(
+                className={`px-4 py-2 rounded-full text-sm font-semibold capitalize ${statusColor(
                   order.status
                 )}`}
               >
@@ -171,11 +175,11 @@ export default function TrackPage() {
               </span>
             </div>
 
-            {/* SENDER & RECEIVER */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* SENDER / RECEIVER */}
+            <div className="grid md:grid-cols-2 gap-6">
               <PersonCard
                 title="Sender"
-                name={order.pickup?.contactName}
+                name={order.pickup?.name}
                 phone={order.pickup?.phone}
                 email={order.pickup?.email}
                 address={order.pickup?.address}
@@ -190,13 +194,39 @@ export default function TrackPage() {
               />
             </div>
 
+            {/* PACKAGE */}
+            <InfoCard title="Package Details" icon={Package}>
+              <Row label="Goods Name" value={order.package?.goodsName} />
+              <Row label="Category" value={order.package?.category} />
+              <Row label="Description" value={order.package?.description} />
+              <Row label="Weight" value={`${order.package?.weight} kg`} />
+              <Row
+                label="Dimensions"
+                value={`${order.package?.length} x ${order.package?.width} x ${order.package?.height} cm`}
+              />
+              <Row label="Value" value={order.package?.value} />
+            </InfoCard>
+
+            {/* PAYMENT */}
+            <InfoCard title="Payment" icon={CreditCard}>
+              <Row label="Status" value={order.payment?.status} />
+              <Row label="Method" value={order.payment?.method} />
+              <Row label="Amount" value={`${order.payment?.currency} ${order.payment?.amount}`} />
+            </InfoCard>
+
+            {/* SCHEDULE */}
+            <InfoCard title="Schedule" icon={Calendar}>
+              <Row label="Pickup Date" value={order.pickupSchedule?.date} />
+              <Row label="Pickup Time" value={order.pickupSchedule?.time} />
+              <Row label="Delivery Date" value={order.deliverySchedule?.date} />
+              <Row label="Delivery Time" value={order.deliverySchedule?.time} />
+            </InfoCard>
+
             {/* CURRENT LOCATION */}
             <div className="bg-white text-gray-900 rounded-2xl p-6 shadow-xl">
               <div className="flex items-center gap-2 mb-2">
                 <Truck className="w-5 h-5 text-blue-500 animate-pulse" />
-                <h2 className="font-bold text-lg">
-                  Current Location
-                </h2>
+                <h2 className="font-bold text-lg">Current Location</h2>
               </div>
 
               <p className="text-sm text-gray-700">
@@ -206,9 +236,7 @@ export default function TrackPage() {
             </div>
 
             {/* TIMELINE */}
-            <TrackingTimeline
-              history={order.tracking?.history || []}
-            />
+            <TrackingTimeline history={timeline} />
 
             {/* MAP */}
             <TrackingMap
@@ -223,13 +251,7 @@ export default function TrackPage() {
 
 /* ================= COMPONENTS ================= */
 
-function PersonCard({
-  title,
-  name,
-  phone,
-  email,
-  address,
-}: any) {
+function PersonCard({ title, name, phone, email, address }: any) {
   return (
     <div className="bg-white text-gray-900 rounded-2xl p-6 shadow-xl space-y-3">
       <h3 className="font-bold text-lg flex items-center gap-2">
@@ -237,19 +259,30 @@ function PersonCard({
         {title}
       </h3>
 
-      <InfoRow icon={User} label="Name" value={name} />
-      <InfoRow icon={Phone} label="Phone" value={phone} />
-      <InfoRow icon={Mail} label="Email" value={email} />
-      <InfoRow icon={MapPin} label="Address" value={address} />
+      <Row label="Name" value={name} />
+      <Row label="Phone" value={phone} />
+      <Row label="Email" value={email} />
+      <Row label="Address" value={address} />
     </div>
   );
 }
 
-function InfoRow({ icon: Icon, label, value }: any) {
+function InfoCard({ title, icon: Icon, children }: any) {
   return (
-    <div className="flex items-center gap-3 text-sm">
-      <Icon className="w-4 h-4 text-gray-400" />
-      <span className="text-gray-500 w-20">{label}</span>
+    <div className="bg-white text-gray-900 rounded-2xl p-6 shadow-xl space-y-3">
+      <h3 className="font-bold text-lg flex items-center gap-2">
+        <Icon className="w-5 h-5 text-yellow-500" />
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+function Row({ label, value }: any) {
+  return (
+    <div className="flex justify-between text-sm border-b pb-1">
+      <span className="text-gray-500">{label}</span>
       <span className="font-medium">{value || "—"}</span>
     </div>
   );
