@@ -18,8 +18,8 @@ const navItems = [
   { name: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard, exact: true },
   { name: "View Orders", href: "/dashboard/admin/orders", icon: Package },
   { name: "Riders", href: "/dashboard/admin/riders", icon: Truck },
-  { name: "Customers", href: "/dashboard/admin/customers", icon: Users },
-  { name: "send mail", href: "/dashboard/admin/send-mail", icon: MapPin },
+  { name: "Chats", href: "/dashboard/admin/chats", icon: Users },
+  { name: "Tracking", href: "/dashboard/admin/tracking", icon: MapPin },
   { name: "Settings", href: "/dashboard/admin/settings", icon: Settings },
 ];
 

@@ -7,7 +7,6 @@ import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import ActionCards from "@/components/landing/ActionCards";
 
-// 🔽 NEW SECTIONS (4 → 10)
 import Services from "@/components/landing/Services";
 import HowItWorks from "@/components/landing/HowItWorks";
 import GlobalCoverage from "@/components/landing/GlobalCoverage";
@@ -17,32 +16,27 @@ import CTA from "@/components/landing/CTA";
 import Footer from "@/components/landing/Footer";
 
 import PageLoader from "@/components/ui/PageLoader";
+import LandingChat from "@/components/chat/LandingChat"; // 🔥 NEW
 
 export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate initial app load
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1200);
-
+    const timer = setTimeout(() => setLoading(false), 1200);
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <>
-      {/* PAGE LOADER */}
       <AnimatePresence>{loading && <PageLoader />}</AnimatePresence>
 
       {!loading && (
-        <main className="bg-gray-50 min-h-screen">
-          {/* 1–3 */}
+        <main className="bg-gray-50 min-h-screen relative">
+          {/* CONTENT */}
           <Navbar />
           <Hero />
           <ActionCards />
 
-          {/* 4–10 (DHL STRUCTURE) */}
           <Services />
           <HowItWorks />
           <GlobalCoverage />
@@ -50,6 +44,9 @@ export default function HomePage() {
           <BusinessSolutions />
           <CTA />
           <Footer />
+
+          {/* CHAT SUPPORT */}
+          <LandingChat />
         </main>
       )}
     </>
