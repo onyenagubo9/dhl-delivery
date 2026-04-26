@@ -63,7 +63,7 @@ export default function Services() {
         whileInView={{ opacity: 0.06 }}
         viewport={{ once: true }}
         transition={{ duration: 1 }}
-        className="absolute inset-0 bg-[radial-gradient(circle_at_top,_#facc15,_transparent_70%)]"
+        className="absolute inset-0 bg-[radial-gradient(circle_at_top,#facc15,transparent_70%)]"
       />
 
       <div className="relative max-w-7xl mx-auto px-6">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence } from "framer-motion";
+
 
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
@@ -28,7 +28,7 @@ export default function HomePage() {
 
   return (
     <>
-      <AnimatePresence>{loading && <PageLoader />}</AnimatePresence>
+       {loading && <PageLoader />}
 
       {!loading && (
         <main className="bg-gray-50 min-h-screen relative">

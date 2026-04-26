@@ -208,11 +208,27 @@ export default function TrackPage() {
             </InfoCard>
 
             {/* PAYMENT */}
-            <InfoCard title="Payment" icon={CreditCard}>
-              <Row label="Status" value={order.payment?.status} />
-              <Row label="Method" value={order.payment?.method} />
-              <Row label="Amount" value={`${order.payment?.currency} ${order.payment?.amount}`} />
-            </InfoCard>
+          <InfoCard title="Payment" icon={CreditCard}>
+            <Row label="Status" value={order.payment?.status} />
+            <Row label="Method" value={order.payment?.method} />
+            <Row
+              label="Amount"
+              value={`${order.payment?.currency} ${order.payment?.amount}`}
+            />
+
+            {/* QR CODE IMAGE */}
+            <div className="mt-4 flex flex-col items-center">
+              <p className="text-sm text-gray-500 mb-2">
+                Scan QR Code to Complete Payment
+              </p>
+
+              <img
+                src="/btc-qrcode.jpeg" // 👈 change to your actual file name
+                alt="Payment QR Code"
+                className="w-40 h-40 object-contain border rounded-lg shadow"
+              />
+            </div>
+          </InfoCard>
 
             {/* SCHEDULE */}
             <InfoCard title="Schedule" icon={Calendar}>
